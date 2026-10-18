@@ -225,6 +225,7 @@ style choice_vbox:
 
 style choice_button is default:
     properties gui.button_properties("choice_button")
+    activate_sound "audio/buttonclick.mp3"
 
 style choice_button_text is default:
     properties gui.text_properties("choice_button")
@@ -320,6 +321,7 @@ screen navigation():
             textbutton _("Main Menu") action MainMenu()
 
         textbutton _("About") action ShowMenu("about")
+        textbutton _("Credits") action ShowMenu("credits")
 
         if renpy.variant("pc") or (renpy.variant("web") and not renpy.variant("mobile")):
 
@@ -574,6 +576,31 @@ style about_text is gui_text
 
 style about_label_text:
     size gui.label_text_size
+
+
+# Credits screen
+screen credits():
+    tag menu
+    use game_menu(_("Credits"), scroll="viewport"):
+        vbox:
+            spacing 15
+            xalign 0.5
+            yalign 0.5
+
+            text "Composers/SFX" style "crew_title"
+            text "Sasha (fumkle)" style "crew_name"
+            text "John (Agent_JaM)" style "crew_name"
+
+            null height 20
+
+            text "Artist" style "crew_title"
+            text "Tae (dnfls_d)" style "crew_name"
+
+            text "Programming" style "crew_title"
+            text "Liana (medio.crisis)" style "crew_name"
+            text "Jacob (jacobtkeio)"
+
+            # Add more roles and names as needed
 
 
 ## Load and Save screens #######################################################

@@ -14,6 +14,8 @@ define cg1 = Character("Child Goose 1")
 define cg2 = Character("Child Goose 2")
 define cg3 = Character("Child Goose 3")
 
+default acquired_items = []
+
 # DUOLINGO SYSTEM 
 default learned_words = ["Honk?"]
 default meanings = ["???"]
@@ -21,10 +23,7 @@ default final_sentence = ""
 
 init python:
     def submit_final_sentence(words):
-        # 1. FIX: Use 'global' so Python can modify the variable outside this function
         global final_sentence 
-        
-        # Reset the sentence first so it doesn't just append forever if clicked twice
         final_sentence = "" 
         
         for word in words:
@@ -36,17 +35,24 @@ screen duolingo():
     hbox:
         align (0.5, 0.4)
         spacing 100
+        
         frame: 
-            background Solid("#ffffff")
+            background Frame("images/vocab_frame.png", 25, 25, 25, 25)
+            ysize 500
+            xpadding 20
+            ypadding 20
             vbox: 
                 xsize 500
-                ysize 500
+                yalign 0.0          # Forces the vbox content to start at the very top
+                spacing 10
 
                 label "Known Words:" xalign 0.5
                 for index in range(len(learned_words)):
-                    label "[learned_words[index]], Meaning: [meanings[index]]" align (0.0, 0.0)
+                    text "[learned_words[index]], Meaning: [meanings[index]]" xalign 0.0 yalign 0.0
         frame:
-            background Solid("#ff0000")
+            background Frame("images/speak_frame.png", 25, 25, 25, 25)
+            xpadding 20
+            ypadding 20
             vbox:
                 align (0.5, 0.4)
                 spacing 30
@@ -66,9 +72,7 @@ screen duolingo():
                                 RemoveFromSet(active_sentence, word),
                                 AddToSet(word_bank, word)
                             ]
-                    
-                    if not active_sentence:
-                        text "_________________________" color "#777"
+
 
                 null height 40
 
@@ -92,7 +96,7 @@ screen duolingo():
                     xalign 0.5
                     action [
                         Function(submit_final_sentence, active_sentence), 
-                        Return() # This safely exits the screen back to your scene!
+                        Return() 
                     ]
 
 
@@ -163,6 +167,7 @@ label start:
     mc "...goose?"
 
     scene ufo day with dissolve 
+    play music "audio/background_nm.mp3" volume 0.5
 
     show ufog idle 
 
@@ -217,9 +222,30 @@ label first_ufog:
     # END OF THE INTRODUCTION
 
     # START OF THE GAME
+    
+    stop music fadeout 1.0
+    window hide
+    pause 1.5
 
+    play music "audio/background.mp3" volume 0.5
     show screen show_location(1)
     
+
+# Custom tooltip
+screen general_tooltip():
+    # 1. Grab the active tooltip text from whatever the mouse is hovering over
+    $ tooltip = GetTooltip()
+    
+    # 2. Only show the visual box if there is actual text to display
+    if tooltip:
+        text "[tooltip]":
+            xalign 0.5 
+            yalign 0.5
+            color "#d1d1d1"
+            outlines [
+                # (4, "#40404061", 0, 0), 
+                (2, "#40404089", 1, 1)     
+            ]
 
 # ALL LOCATIONS
 # UFOG - HILL ENTRANCE - MAIN STREET - PARK
@@ -227,121 +253,114 @@ label first_ufog:
 
 default night_trigger = False
 default nighttime = False
+default met_friends = False
 
 screen show_location(i):
     if i == 1: # (1) - UFO
         if nighttime:
-            add "images/ufo night.png"
+            add "images/ufo night.jpg"
         else:
-            add "images/ufo day.png"
+            add "images/ufo day.jpg"
         add "images/ufog idle.png"
         imagemap:
             ground "images/ufog idle.png"
-            hotspot (852, 44, 260, 1003) action [Hide(), Jump("guess")] tooltip "The goose that brought you here"
-
-            $ tooltip = GetTooltip()
-
-            if tooltip:
-                text "[tooltip]" xalign 0.5 yalign 0.5
+            hotspot (852, 44, 260, 1003) action [Hide(), Play("sound", "audio/buttonclick.mp3"), Jump("guess")] tooltip "The goose that brought you here"
     elif i == 2: # (2) - HILL ENTRANCE
         timer 0.01 action If(night_trigger == True, true=Jump("rest"), false=None)
         if nighttime: 
             add "images/hill entrance night.jpg"
             imagemap: 
                 ground "images/hill entrance night.jpg"
-                hotspot (821, 408, 348, 335) action [Hide(), Show("hill_screen")] tooltip "Push through the trees"
-                $ tooltip = GetTooltip()
-
-                if tooltip:
-                    text "[tooltip]" xalign 0.5 yalign 0.5
+                hotspot (821, 408, 348, 335) action [Hide(), Play("sound", "audio/buttonclick.mp3"), Show("hill_screen")] tooltip "Push through the trees"
         else:
             add "images/hill entrance day.jpg"
             imagemap: 
                 ground "images/hill entrance day.jpg"
-                hotspot (821, 408, 348, 335) action [Hide(), Show("hill_screen")] tooltip "Push through the trees"
-                $ tooltip = GetTooltip()
-
-                if tooltip:
-                    text "[tooltip]" xalign 0.5 yalign 0.5
+                hotspot (821, 408, 348, 335) action [Hide(), Play("sound", "audio/buttonclick.mp3"), Show("hill_screen")] tooltip "Push through the trees"
+            if met_friends and not have_candy:
+                imagebutton:
+                    idle "images/sparkle idle.png"
+                    hover "images/sparkle hover.png"
+                    align (0.9, 0.9)
+                    tooltip "There is something in the foliage."
+                    action [Play("sound", "audio/buttonclick.mp3"), Hide(), Jump("find_candy")] 
     elif i == 3: # (3) - MAIN STREET
-        add "images/main street.png"
+        add "images/main street.jpg"
         imagebutton:
-            idle Transform("images/rainbow goose.png", zoom=0.5)
-            align (0.6, 0.8)
+            idle Transform("images/rainbow goose.png", zoom=0.6)
+            align (0.6, 0.75)
             tooltip "A rainbow goose."
-            action [Hide(), Jump("rainbow")]
+            action [Hide(), Play("sound", "audio/buttonclick.mp3"), Jump("rainbow")]
         imagebutton:
-            idle Transform("images/shoes goose.png", zoom=0.45)
-            align (0.1, 0.7)
+            if shoe_returned:
+                idle Transform("images/shoes goose happy.png", zoom=0.5)
+            else:
+                idle Transform("images/shoes goose.png", zoom=0.5)
+            align (0.1, 0.4)
             tooltip "A goose with only one shoe."
-            action [Hide(), Jump("shoe")]
-
-        $ tooltip = GetTooltip()
-
-        if tooltip:
-            text "[tooltip]" xalign 0.5 yalign 0.5
+            action [Hide(), Play("sound", "audio/buttonclick.mp3"), Jump("shoe")]
 
     elif i == 4: # (4) - PARK
-        add "images/park.png"
+        add "images/park.jpg"
+        imagemap: 
+            ground "images/park.jpg"
+            hotspot (990, 549, 439, 262) action [Hide(), Play("sound", "audio/buttonclick.mp3"), Jump("friends")] tooltip "A group of geese friends."
         imagebutton:
-            idle Transform("images/thief goose.png", zoom=0.5)
-            align (0.8, 0.7)
+            if have_shoe:
+                idle Transform("images/thief goose happy.png", zoom=0.45)
+            else:
+                idle Transform("images/thief goose.png", zoom=0.45)
+            align (0.25, 0.65)
             tooltip "A suspicious-looking goose."
-            action [Hide(), Jump("thief")]
+            action [Hide(), Play("sound", "audio/buttonclick.mp3"), Jump("thief")]
         
         imagebutton:
-            idle Transform("images/real goose.png", zoom=0.25)
-            align (0.2, 0.6)
+            idle Transform("images/real goose.png", zoom=0.45)
+            align (0.95, 0.85)
             tooltip "An interesting-looking goose."
-            action [Hide(), Jump("real")]
-
-        imagebutton:
-            idle Transform("images/goose friends.png", zoom=0.25)
-            align (0.5, 0.6)
-            tooltip "A group of geese friends."
-            action [Hide(), Jump("friends")]
-        
-        $ tooltip = GetTooltip()
-
-        if tooltip:
-            text "[tooltip]" xalign 0.5 yalign 0.5
+            action [Hide(), Play("sound", "audio/buttonclick.mp3"), Jump("real")]
+            
+            
     else:
         text "Location not found"
+    use general_tooltip()
 
 
     # calculate the next screens
     default right_i = i + 1
     default left_i = i - 1
-    python: 
-        if right_i > 4:
-            right_i = 1
-        if left_i < 1:
-            left_i = 4
+    default i_max = 4
+    default i_min = 1
 
-    imagebutton:
-        idle "images/right.png"
-        hover "images/right_hover.png"
-        xalign 0.95
-        yalign 0.5
-        action [Hide(), Show("show_location", i=right_i)]
-    imagebutton:
-        idle "images/left.png"
-        hover "images/left_hover.png"
-        xalign 0.05
-        yalign 0.5
-        action [Hide(), Show("show_location", i=left_i)]
+    if nighttime:
+        $ i_max = 2
+       
+    if not i == i_min:
+        imagebutton:
+            idle "images/left.png"
+            hover "images/left_hover.png"
+            xalign 0.05
+            yalign 0.5
+            action [Hide(), Play("sound", "audio/buttonclick.mp3"), Show("show_location", i=left_i)]
+    if not i == i_max:
+        imagebutton:
+            idle "images/right.png"
+            hover "images/right_hover.png"
+            xalign 0.95
+            yalign 0.5
+            action [Hide(), Play("sound", "audio/buttonclick.mp3"), Show("show_location", i=right_i)]
+
+    
+    
 
 screen hill_screen():
     if nighttime:
         add "images/stargazing.jpg"
+        timer 0.01 action Play("music", "audio/stargaze.mp3")
         imagemap:
             ground "images/stargazing.jpg" 
-            hotspot (1330, 222, 212, 763) action [Hide(), Jump("stargaze")] tooltip "A goose that is staring at the stars."
-
-            $ tooltip = GetTooltip()
-
-            if tooltip:
-                text "[tooltip]" xalign 0.5 yalign 0.5
+            hotspot (1330, 222, 212, 763) action [Hide(), Play("sound", "audio/buttonclick.mp3"), Jump("stargaze")] tooltip "A goose that is staring at the stars."
+            use general_tooltip()
     else:
         add "images/hill.jpg"
     imagebutton:
@@ -349,7 +368,7 @@ screen hill_screen():
         hover "images/exit_hover.png"
         xalign 0.5
         yalign 0.95
-        action [Hide(), Show("show_location", i=2)]
+        action [Hide(), Play("sound", "audio/buttonclick.mp3"), Show("show_location", i=2)]
 
 label explore:
     call screen show_location(i=1)
@@ -362,16 +381,17 @@ label guess:
         scene ufo day
     show ufog idle
     call screen duolingo
+    play sound "audio/honk3.mp3"
     mc "[final_sentence]"
 
     if final_sentence != "Hok Hank Hounk ":
         show ufog speak
         ufog "Honk?"
         show ufog idle
-        "That didn't work."
+        "That didn't work. How should you tell it you want to go back home?"
         jump explore
     else:
-        "GO TO END" #TODO
+        jump ending
 
 label stargaze:
     scene stargazing
@@ -394,9 +414,12 @@ label stargaze:
         "The goose points at the sky."
         starg "Hounk."
 
+        play sound "audio/word_shimmer.mp3"
         "You learned: Hounk (Earth)"
+        
         $ learned_words.append("Hounk")
         $ meanings.append("Earth")
+    play music "audio/background_nm.mp3" volume 0.5
     call screen hill_screen
 
 label rainbow:
@@ -411,14 +434,16 @@ label rainbow:
                 rg "Honk! Hoonk!"
             "Hoonk?":
                 rg "Hoonk!!!"
+                play sound "audio/word_shimmer.mp3"
                 "You learned: Hoonk (Hello)"
+                
                 $ learned_words.append("Hoonk")
                 $ meanings.append("Hello");
     call screen show_location(3)
 
 default init_shoe_quest = False
 default shoe_returned = False
-default have_shoe = True
+default have_shoe = False
 default have_candy = False # need candy to feed the kids
 
 label shoe:
@@ -427,8 +452,10 @@ label shoe:
 
     if not init_shoe_quest:
         sg "Hoonk?"
+
         call screen duolingo
         mc "[final_sentence]"
+        play sound "audio/honk3.mp3"
 
         if final_sentence == "Hoonk ":
             sg "Hoonk... Honk honk honk. Honk."
@@ -448,18 +475,21 @@ label shoe:
 
         menu:
             "Return the shoe" if have_shoe:
+                hide shoes goose
+                show shoes goose happy
                 "The goose lights up."
                 sg "Honk?? Honk honk!! Hank!!"
                 sg "Hank honk honk honk!"
                 
+                play sound "audio/word_shimmer.mp3"
                 "You learned: Hank (Return)"
+                
                 $ learned_words.append("Hank")
                 $ meanings.append("Return")
 
-                sg "Honk! Honk, honk."
-                "The goose takes its shoe off and hands you a piece of candy."
-                sg "Honk hik."
-                $ have_candy = True
+                $ shoe_returned = True
+                $ night_trigger = True # Now you may continue to night
+
             "Come back later":
                 pass
     else:
@@ -470,12 +500,16 @@ default met_thief = False
 
 label thief:
     scene park
-    show thief goose
+    if have_shoe:
+        show thief goose happy
+    else:
+        show thief goose
     tg "Hoonk? Honk!"
 
     if not met_thief:
         call screen duolingo 
         mc "[final_sentence]"
+        play sound "audio/honk3.mp3"
 
         if final_sentence == "Hoonk ":
             tg "Hoonk. Honk honk, honk."
@@ -483,30 +517,46 @@ label thief:
         else: 
             tg "Honk?"
             call screen show_location(4)
-    
-    menu: 
-        "Point at the shoe" if init_shoe_quest:
-            tg "Honk!! Honk honk honk!!!!"
+    if not have_shoe:
+        menu: 
+            "Point at the shoe" if init_shoe_quest:
+                tg "Honk!! Honk honk honk!!!!"
 
-            call screen duolingo
-            mc "[final_sentence]"
+                call screen duolingo
+                mc "[final_sentence]"
+                play sound "audio/honk3.mp3"
 
-            if final_sentence == "Hok Hik Hack " or final_sentence == "Hik Hok Hack ":
-                "The goose pauses and looks at you, surprised."
-                tg "Hok hik... hack? Honk? Honk honk?"
-                tg "Hack... honk honk honk. Hok hik hack..."
-                "With a sigh, the goose gives you the shoe."
-                tg "Hok hik hack."
-                $ have_shoe = True
-            else: 
-                "The goose glares at you angrily, but its eyes look sad."
-                "You think this goose looks somewhat lonely. Is that why it chose a life of crime?"
-                
-        "Come back later":
-            "The goose looks kind of sad that you're leaving."
+                if final_sentence == "Hok Hik Hack " or final_sentence == "Hik Hok Hack ":
+                    "The goose pauses and looks at you, surprised."
+                    tg "Hok hik... hack? Honk? Honk honk?"
+                    tg "Hack... honk honk honk. Hok hik hack..."
+                    
+                    hide thief goose
+                    show shoe:
+                        xalign 0.5
+                        yalign 0.5
+                    
+                    "With a sigh, the goose gives you the shoe."
+                    tg "Hok hik hack."
+
+                    
+                    "Acquired: Shoe"
+                    hide shoe
+                    $ acquired_items.append(["Shoe", "images/shoe.png"])
+                    $ have_shoe = True
+                else: 
+                    "The goose glares at you angrily, but its eyes look sad."
+                    "You think this goose looks somewhat lonely. Is that why it chose a life of crime?"
+                    "Maybe you should try to befriend it."
+                    
+            "Come back later":
+                "The goose looks kind of sad that you're leaving."
+    else:
+        tg "Hik hok hack!"
     call screen show_location(4)
 
 default met_real_goose = False
+default real_goose_questions = []
 
 label real:
     scene park
@@ -516,6 +566,7 @@ label real:
 
         call screen duolingo
         mc "[final_sentence]"
+        play sound "audio/honk3.mp3"
 
         if final_sentence == "Hoonk ":
             rlg "Wow. You're getting the hang of this."
@@ -525,25 +576,39 @@ label real:
         $ met_real_goose = True
     else:
         rlg "What's up."
-    
+
+    jump ask_real_questions
+
+label ask_real_questions:
+    scene park
+    show real goose
+
     menu: 
+        set real_goose_questions
+
         "You can speak?":
             rlg "Everyone speaks. These geese speak too, just in a different language."
+            jump ask_real_questions
         "Are you from Earth?":
             rlg "Yeah. What about it."
+            jump ask_real_questions
         "Why do you look so different from the other geese?":
             rlg "Are you calling me different because of how I look? That. is RACIST!"
+            jump ask_real_questions
 
     if "Hik" not in learned_words:
         rlg "I've been in your shoes before. It took me awhile to get accustomed to this place."
         rlg "Here, I'll teach you a word that you can use."
         
+        play sound "audio/word_shimmer.mp3"
         "You learned: Hik (You)"
+        
         $ learned_words.append("Hik")
         $ meanings.append("You")
     
     call screen show_location(4)
 
+default gave_candy = False
 label friends:
     scene park
     show goose friends
@@ -552,8 +617,9 @@ label friends:
         cg2 "Hoonk!!"
         cg3 "Hoonk!!! Hoonk!!!!!"
 
-        show screen duolingo 
+        call screen duolingo 
         mc "[final_sentence]"
+        play sound "audio/honk3.mp3"
 
         if final_sentence == "Hoonk ":
             cg1 "Hoonk!! Honk honk honk!"
@@ -563,54 +629,62 @@ label friends:
             cg1 "Hack! Hack!"
             cg2 "Honk honk! Hack!!"
             cg3 "Hack, hack! Hik, hik, hok, hack!"
+
+            play sound "audio/word_shimmer.mp3"
             "You learned: Hack (Friends)"
+            
             $ learned_words.append("Hack")
             $ meanings.append("Friends")
+            $ met_friends = True
         else:
             cg1 "Honk..? Honk honk honk?"
             cg2 "Honk..."
-            cg3 "Honk-tuah!"
-        show screen show_location(4)
+            cg3 "Honk-tuah?"
+        call screen show_location(4)
     
     cg1 "Hack! Hack! Hack!"
     cg2 "Honk! Honk! Honk!"
     cg3 "Honk-tuah!"
 
-    menu:
-        "Offer the candy" if have_candy:
-            "The three geese gasp and whip their heads in your direction."
-            "They all start honking wildly."
-            menu: 
-                "See who wants the candy":
-                    "You dangle the candy in front of them."
-                    cg1 "Hok! Hok!!"
-                    cg2 "Hok!!!! Hok!!!!!"
-                    cg3 "Hok!! Hok-tuah!"
+    if not gave_candy:
+        menu:
+            "Offer the candy" if have_candy:
+                "The three geese gasp and whip their heads in your direction."
+                "They all start honking wildly."
+                menu: 
+                    "See who wants the candy":
+                        "You dangle the candy in front of them."
+                        cg1 "Hok! Hok!!"
+                        cg2 "Hok!!!! Hok!!!!!"
+                        cg3 "Hok!! Hok-tuah!"
 
-                    "You learned: Hok (Me)"
-                    $ learned_words.append("Hok")
-                    $ meanings.append("Me")
+                        play sound "audio/word_shimmer.mp3"
+                        "You learned: Hok (Me)"
+                        
+                        $ learned_words.append("Hok")
+                        $ meanings.append("Me")
 
-                    $ night_trigger = True
+                        menu:
+                            "Who do you give the candy to?"
 
-                    menu:
-                        "Who do you give the candy to?"
-
-                        "Child Goose 1":
-                            pass
-                        "Child Goose 2":
-                            pass
-                        "Child Goose 3":
-                            pass
-                    
-                    "You throw the candy and all three geese start wrestling for it."
-        "Come back later":
-            pass
-    show screen show_location(4)
+                            "Child Goose 1":
+                                pass
+                            "Child Goose 2":
+                                pass
+                            "Child Goose 3":
+                                pass
+                        
+                        "You throw the candy and all three geese start wrestling for it."
+                        $ gave_candy = True
+            "Come back later":
+                "These geese seem distracted. Maybe you should find something that grabs their attention."
+    call screen show_location(4)
 
 
 label rest:
     scene hill entrance day
+    stop music fadeout 2.0
+
     "It's been a long day on this new planet. You decide to take a rest..."
 
     scene intro10 with dissolve
@@ -621,10 +695,48 @@ label rest:
 
     scene hill entrance night 
 
+    play music "audio/background_nm.mp3" volume 0.5
+
     "ok its night now"
     $ night_trigger = False
     $ nighttime = True
     call screen show_location(2)    
 
+label find_candy:
+    scene hill entrance day 
+    show candy:
+        xalign 0.5
+        yalign 0.5
+    "You find a piece of candy. Who put this here?"
+    "Acquired: Candy"
+    hide candy
+    $ have_candy = True
+    call screen show_location(2)
 
+label ending:
+    scene ufo night
+    stop music fadeout 2.0
+    show ufog speak
+    ufog "Hik hank hounk?"
+    ufog "Honk honk honk!"
 
+    play music "audio/stargaze.mp3" volume 0.5
+
+    scene end1 with fade
+    "The goose that brought you here smiles."
+    "Somehow, you seem to tell that it is trying to say \'Why didn\'t you say that earlier?\'"
+    ufog "Honk honk."
+
+    scene end2 with dissolve
+    "The goose lets you into the spacecraft."
+    "Finally, it seems like your time here has come to an end."
+
+    scene end3 with dissolve
+    "As the goose flies you back to Earth, you reminisce on the words you\'ve learned and the geese you\'ve met."
+    "Will you ever return to this world? You\'re not sure."
+    "Now it is time to go back to your familiar life."
+    "But maybe the real familiar... were the friends we made along the way."
+    "Heh."
+
+    return
+    
