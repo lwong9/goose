@@ -167,10 +167,14 @@ label start:
     mc "...goose?"
 
     scene ufo day with dissolve 
-    play music "audio/background_nm.mp3" volume 0.5
+    stop music fadeout 1.0
+    
+    
 
     show ufog idle 
+    pause 1.5
 
+    play music "audio/background_nm.mp3" volume 0.5
     menu: 
         "Talk to the Goose":
             mc "Hello?"
@@ -212,6 +216,7 @@ label first_ufog:
     "This isn't working. Maybe you should try to speak in the goose language."
 
     call screen duolingo
+    play sound "audio/honk3.mp3"
 
     ufog "Honk?"
     
@@ -356,7 +361,8 @@ screen show_location(i):
 screen hill_screen():
     if nighttime:
         add "images/stargazing.jpg"
-        timer 0.01 action Play("music", "audio/stargaze.mp3")
+        $ playing = renpy.music.get_playing("music")
+    
         imagemap:
             ground "images/stargazing.jpg" 
             hotspot (1330, 222, 212, 763) action [Hide(), Play("sound", "audio/buttonclick.mp3"), Jump("stargaze")] tooltip "A goose that is staring at the stars."
@@ -419,7 +425,6 @@ label stargaze:
         
         $ learned_words.append("Hounk")
         $ meanings.append("Earth")
-    play music "audio/background_nm.mp3" volume 0.5
     call screen hill_screen
 
 label rainbow:
@@ -454,8 +459,9 @@ label shoe:
         sg "Hoonk?"
 
         call screen duolingo
-        mc "[final_sentence]"
         play sound "audio/honk3.mp3"
+        mc "[final_sentence]"
+        
 
         if final_sentence == "Hoonk ":
             sg "Hoonk... Honk honk honk. Honk."
@@ -508,8 +514,9 @@ label thief:
 
     if not met_thief:
         call screen duolingo 
-        mc "[final_sentence]"
         play sound "audio/honk3.mp3"
+        mc "[final_sentence]"
+        
 
         if final_sentence == "Hoonk ":
             tg "Hoonk. Honk honk, honk."
@@ -523,8 +530,9 @@ label thief:
                 tg "Honk!! Honk honk honk!!!!"
 
                 call screen duolingo
-                mc "[final_sentence]"
                 play sound "audio/honk3.mp3"
+                mc "[final_sentence]"
+                
 
                 if final_sentence == "Hok Hik Hack " or final_sentence == "Hik Hok Hack ":
                     "The goose pauses and looks at you, surprised."
@@ -565,8 +573,9 @@ label real:
         rlg "Hoonk."
 
         call screen duolingo
-        mc "[final_sentence]"
         play sound "audio/honk3.mp3"
+        mc "[final_sentence]"
+        
 
         if final_sentence == "Hoonk ":
             rlg "Wow. You're getting the hang of this."
@@ -618,8 +627,9 @@ label friends:
         cg3 "Hoonk!!! Hoonk!!!!!"
 
         call screen duolingo 
-        mc "[final_sentence]"
         play sound "audio/honk3.mp3"
+        mc "[final_sentence]"
+        
 
         if final_sentence == "Hoonk ":
             cg1 "Hoonk!! Honk honk honk!"
@@ -695,7 +705,7 @@ label rest:
 
     scene hill entrance night 
 
-    play music "audio/background_nm.mp3" volume 0.5
+    play music "audio/stargaze.mp3" volume 0.5
 
     "ok its night now"
     $ night_trigger = False
@@ -720,11 +730,11 @@ label ending:
     ufog "Hik hank hounk?"
     ufog "Honk honk honk!"
 
-    play music "audio/stargaze.mp3" volume 0.5
+    play music "audio/space.mp3" volume 0.5
 
     scene end1 with fade
     "The goose that brought you here smiles."
-    "Somehow, you seem to tell that it is trying to say \'Why didn\'t you say that earlier?\'"
+    "Somehow, you seem to tell that it is trying to say - \'Why didn\'t you say that earlier?\'"
     ufog "Honk honk."
 
     scene end2 with dissolve
@@ -737,6 +747,10 @@ label ending:
     "Now it is time to go back to your familiar life."
     "But maybe the real familiar... were the friends we made along the way."
     "Heh."
+
+    scene black with Dissolve(2.0)
+
+    "THE END"
 
     return
     

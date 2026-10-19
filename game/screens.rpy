@@ -289,12 +289,11 @@ style quick_button_text:
 ## to other menus, and to start the game.
 
 screen navigation():
-
     vbox:
         style_prefix "navigation"
 
-        xpos gui.navigation_xpos
-        yalign 0.5
+        xpos 0.26
+        yalign 0.46
 
         spacing gui.navigation_spacing
 
@@ -344,6 +343,7 @@ style navigation_button:
 
 style navigation_button_text:
     properties gui.text_properties("navigation_button")
+    xalign 0.5
 
 
 ## Main Menu screen ############################################################
@@ -386,10 +386,10 @@ style main_menu_title is main_menu_text
 style main_menu_version is main_menu_text
 
 style main_menu_frame:
-    xsize 420
+    xsize 400
     yfill True
 
-    background "gui/overlay/main_menu.png"
+    # background "gui/overlay/main_menu.png"
 
 style main_menu_vbox:
     xalign 1.0
@@ -505,7 +505,7 @@ style game_menu_outer_frame:
     bottom_padding 45
     top_padding 180
 
-    background "gui/overlay/game_menu.png"
+    # background "gui/overlay/game_menu.png"
 
 style game_menu_navigation_frame:
     xsize 420
@@ -596,9 +596,15 @@ screen credits():
             text "Artist" style "crew_title"
             text "Tae (dnfls_d)" style "crew_name"
 
+            null height 20
+
             text "Programming" style "crew_title"
             text "Liana (medio.crisis)" style "crew_name"
-            text "Jacob (jacobtkeio)"
+
+            null height 20
+
+            text "Moral support" style "crew_title"
+            text "Jacob (jacobtkeio)" style "crew_name"
 
             # Add more roles and names as needed
 
@@ -1646,3 +1652,4 @@ style slider_vbox:
 style slider_slider:
     variant "small"
     xsize 900
+

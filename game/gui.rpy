@@ -28,7 +28,7 @@ define config.check_conflicting_properties = True
 define gui.accent_color = '#cc6600'
 
 ## The color used for a text button when it is neither selected nor hovered.
-define gui.idle_color = '#707070'
+define gui.idle_color = '#b2afaf'
 
 ## The small color is used for small text, which needs to be brighter/darker to
 ## achieve the same effect.
@@ -87,7 +87,7 @@ define gui.title_text_size = 75
 ## Main and Game Menus #########################################################
 
 ## The images used for the main and game menus.
-define gui.main_menu_background = "gui/main_menu.png"
+define gui.main_menu_background = "gui/main_menu.jpg"
 define gui.game_menu_background = "gui/game_menu.png"
 
 
