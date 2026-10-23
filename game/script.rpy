@@ -171,7 +171,7 @@ label start:
     
     
 
-    show ufog idle 
+    show ufog idle day
     pause 1.5
 
     play music "audio/background_nm.mp3" volume 0.5
@@ -179,7 +179,7 @@ label start:
         "Talk to the Goose":
             mc "Hello?"
 
-            show ufog speak 
+            show ufog speak day
             ufog "Honk."
 
             jump first_ufog
@@ -189,29 +189,29 @@ label start:
 default first_ufog_questions = []
 
 label first_ufog:
-    show ufog idle
+    show ufog idle day
     menu: 
         set first_ufog_questions
 
         "Why did you take me here?":
-            show ufog speak
+            show ufog speak day
             ufog "Honk honk." #TENTATIVE LANGUAGE
             jump first_ufog
 
         "What is this place?":
-            show ufog speak
+            show ufog speak day
             ufog "Honk honk honk honk."
             jump first_ufog
 
         "What did you do with my baguette?":
-            show ufog speak
+            show ufog speak day
             ufog "Honk. Honk."
             jump first_ufog
         
         "Can I go back home?" if len(first_ufog_questions) >= 3:
-            show ufog speak
+            show ufog speak day
             ufog "Honk honk honk. Honk honk honk honk."
-            show ufog idle
+            show ufog idle day
     
     "This isn't working. Maybe you should try to speak in the goose language."
 
@@ -264,12 +264,16 @@ screen show_location(i):
     if i == 1: # (1) - UFO
         if nighttime:
             add "images/ufo night.jpg"
+            add "images/ufog idle night.png"
+            imagemap:
+                ground "images/ufog idle night.png"
+                hotspot (852, 44, 260, 1003) action [Hide(), Play("sound", "audio/buttonclick.mp3"), Jump("guess")] tooltip "The goose that brought you here"
         else:
             add "images/ufo day.jpg"
-        add "images/ufog idle.png"
-        imagemap:
-            ground "images/ufog idle.png"
-            hotspot (852, 44, 260, 1003) action [Hide(), Play("sound", "audio/buttonclick.mp3"), Jump("guess")] tooltip "The goose that brought you here"
+            add "images/ufog idle day.png"
+            imagemap: 
+                ground "images/ufog idle day.png"
+                hotspot (852, 44, 260, 1003) action [Hide(), Play("sound", "audio/buttonclick.mp3"), Jump("guess")] tooltip "The goose that brought you here"
     elif i == 2: # (2) - HILL ENTRANCE
         timer 0.01 action If(night_trigger == True, true=Jump("rest"), false=None)
         if nighttime: 
@@ -383,17 +387,27 @@ label explore:
 label guess:
     if nighttime: 
         scene ufo night
+        show ufog idle night
     else: 
         scene ufo day
-    show ufog idle
+        show ufog idle day
     call screen duolingo
     play sound "audio/honk3.mp3"
     mc "[final_sentence]"
+    
+    $ clean_sentence = final_sentence.replace("Hoonk ", "")
 
-    if final_sentence != "Hok Hank Hounk ":
-        show ufog speak
-        ufog "Honk?"
-        show ufog idle
+    # Successful phrases: Me Return Earth, You Return Me Earth, Return Me Earth
+    if clean_sentence != "Hok Hank Hounk " and clean_sentence != "Hik Hank Hok Hounk " and clean_sentence != "Hank Hok Hounk ":
+        if nighttime:
+            show ufog speak night
+            ufog "Honk?"
+            show ufog idle night
+        else:
+            show ufog speak day
+            ufog "Honk?"
+            show ufog idle day
+        
         "That didn't work. How should you tell it you want to go back home?"
         jump explore
     else:
@@ -453,7 +467,10 @@ default have_candy = False # need candy to feed the kids
 
 label shoe:
     scene main street
-    show shoes goose
+    if not shoe_returned:
+        show shoes goose
+    else:
+        show shoes goose happy
 
     if not init_shoe_quest:
         sg "Hoonk?"
@@ -533,8 +550,8 @@ label thief:
                 play sound "audio/honk3.mp3"
                 mc "[final_sentence]"
                 
-
-                if final_sentence == "Hok Hik Hack " or final_sentence == "Hik Hok Hack ":
+                $ clean_sentence = final_sentence.replace("Hoonk ", "")
+                if clean_sentence == "Hok Hik Hack " or clean_sentence == "Hik Hok Hack ":
                     "The goose pauses and looks at you, surprised."
                     tg "Hok hik... hack? Honk? Honk honk?"
                     tg "Hack... honk honk honk. Hok hik hack..."
@@ -577,8 +594,9 @@ label real:
         mc "[final_sentence]"
         
 
-        if final_sentence == "Hoonk ":
-            rlg "Wow. You're getting the hang of this."
+        if final_sentence.startswith("Hoonk"):
+            rlg "Wow. You already know how to say hello?"
+            rlg "You're getting the hang of this."
             rlg "Good job."
         else: 
             rlg "You know, it's really best practice to start your conversations off with 'hello.'"
@@ -726,7 +744,7 @@ label find_candy:
 label ending:
     scene ufo night
     stop music fadeout 2.0
-    show ufog speak
+    show ufog speak night
     ufog "Hik hank hounk?"
     ufog "Honk honk honk!"
 

@@ -424,7 +424,7 @@ screen game_menu(title, scroll=None, yinitial=0.0, spacing=0):
     if main_menu:
         add gui.main_menu_background
     else:
-        add gui.game_menu_background
+        add Solid("#d1d1d1")
 
     frame:
         style "game_menu_outer_frame"
@@ -926,6 +926,8 @@ style slider_vbox:
 screen history():
 
     tag menu
+
+    # background Solid("#fffff")
 
     ## Avoid predicting this screen, as it can be very large.
     predict False
